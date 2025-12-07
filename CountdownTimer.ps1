@@ -190,7 +190,8 @@ $timer.Add_Tick({
                 $timer.Stop()
                 
                 # Timer completed notification
-                [System.Media.SystemSounds]::Beep.Play()
+                # Uncomment to allow beep
+                # [System.Media.SystemSounds]::Beep.Play()
                 
                 # Update UI
                 $btnStart.Enabled = $true
@@ -225,7 +226,7 @@ $panel.Controls.Add($label)
 $txtTime = New-Object System.Windows.Forms.TextBox
 $txtTime.Location = New-Object System.Drawing.Point(100, 12)
 $txtTime.Size = New-Object System.Drawing.Size(80, 20)
-$txtTime.Text = "5"
+$txtTime.Text = "30"
 $txtTime.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50)
 $txtTime.ForeColor = [System.Drawing.Color]::White
 $panel.Controls.Add($txtTime)
