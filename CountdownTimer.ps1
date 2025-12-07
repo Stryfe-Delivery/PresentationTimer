@@ -20,44 +20,38 @@ $titleBarColor = [System.Drawing.Color]::FromArgb(50, 50, 50)
 
 # Create main form with THIN BORDER for resizing
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "Countdown Timer"
 $form.Size = New-Object System.Drawing.Size(300, 400)
-$form.MinimumSize = New-Object System.Drawing.Size(200, 250)
+$form.MinimumSize = New-Object System.Drawing.Size(100, 125)
 $form.StartPosition = "CenterScreen"
-$form.FormBorderStyle = "Sizable"  # Keep standard border for resizing
+$form.FormBorderStyle = "Sizable"
 $form.BackColor = $bgColor
-$form.Opacity = 0.8
+$form.Opacity = 0.6
 $form.TopMost = $true
-$form.ControlBox = $false  # Hide minimize/maximize/close buttons
+$form.ControlBox = $false
 
 # Variables for dragging
 $script:mouseDown = $false
 $script:lastLocation = $null
 
-# Create custom title bar (hidden by default)
+# Create custom title bar (hidden by default) - MUCH SHORTER
 $titleBar = New-Object System.Windows.Forms.Panel
 $titleBar.Dock = "Top"
-$titleBar.Height = 30
+$titleBar.Height = 8  # CHANGED: Reduced to ~10% of original (was 30)
 $titleBar.BackColor = $titleBarColor
 $titleBar.Visible = $false  # Initially hidden
 
-# Title label
-$titleLabel = New-Object System.Windows.Forms.Label
-$titleLabel.Text = "Countdown Timer"
-$titleLabel.ForeColor = [System.Drawing.Color]::White
-$titleLabel.Location = New-Object System.Drawing.Point(10, 5)
-$titleLabel.Size = New-Object System.Drawing.Size(200, 20)
-$titleBar.Controls.Add($titleLabel)
+# REMOVED: Title label completely (no text needed)
 
-# Close button
+# Close button - smaller and positioned for new height
 $closeButton = New-Object System.Windows.Forms.Button
 $closeButton.Text = "✕"
-$closeButton.Size = New-Object System.Drawing.Size(30, 20)
-$closeButton.Location = New-Object System.Drawing.Point(270, 5)
+$closeButton.Size = New-Object System.Drawing.Size(20, 8)  # CHANGED: Smaller to fit
+$closeButton.Location = New-Object System.Drawing.Point(280, 0)  # CHANGED: Positioned at top right
 $closeButton.FlatStyle = "Flat"
 $closeButton.BackColor = [System.Drawing.Color]::FromArgb(80, 80, 80)
 $closeButton.ForeColor = [System.Drawing.Color]::White
 $closeButton.FlatAppearance.BorderSize = 0
+$closeButton.Font = New-Object System.Drawing.Font("Arial", 6)  # CHANGED: Smaller font
 $closeButton.Add_Click({ $form.Close() })
 $titleBar.Controls.Add($closeButton)
 
@@ -202,19 +196,10 @@ $timer.Add_Tick({
                 $btnStart.Enabled = $true
                 $btnStop.Enabled = $false
                 $txtTime.Enabled = $true
-                
-                # Update title in hidden title bar
-                $titleLabel.Text = "Countdown Timer - Complete!"
             }
             
             # 4. UPDATE DISPLAY with the calculated progress
             Update-Display -progress $progress
-            
-            # 5. Update title in hidden title bar if still running
-            if ($script:isRunning) {
-                $timeSpan = [TimeSpan]::FromSeconds($script:remainingSeconds)
-                $titleLabel.Text = "Countdown: {0:00}:{1:00}" -f [Math]::Floor($timeSpan.TotalMinutes), [Math]::Floor($timeSpan.Seconds)
-            }
             
         } catch {
             Write-Host "ERROR in timer tick: $_"
@@ -225,9 +210,9 @@ $timer.Add_Tick({
 # Create controls panel (hidden by default)
 $panel = New-Object System.Windows.Forms.Panel
 $panel.Dock = "Bottom"
-$panel.Height = 80
+$panel.Height = 120
 $panel.BackColor = $controlColor
-$panel.Visible = $false  # Initially hidden
+$panel.Visible = $false
 
 # Time input
 $label = New-Object System.Windows.Forms.Label
@@ -245,10 +230,10 @@ $txtTime.BackColor = [System.Drawing.Color]::FromArgb(50, 50, 50)
 $txtTime.ForeColor = [System.Drawing.Color]::White
 $panel.Controls.Add($txtTime)
 
-# Buttons
+# Buttons - Stacked vertically
 $btnStart = New-Object System.Windows.Forms.Button
 $btnStart.Location = New-Object System.Drawing.Point(20, 40)
-$btnStart.Size = New-Object System.Drawing.Size(75, 30)
+$btnStart.Size = New-Object System.Drawing.Size(160, 30)
 $btnStart.Text = "Start"
 $btnStart.BackColor = [System.Drawing.Color]::FromArgb(80, 80, 80)
 $btnStart.ForeColor = [System.Drawing.Color]::White
@@ -256,8 +241,8 @@ $btnStart.FlatStyle = "Flat"
 $panel.Controls.Add($btnStart)
 
 $btnStop = New-Object System.Windows.Forms.Button
-$btnStop.Location = New-Object System.Drawing.Point(105, 40)
-$btnStop.Size = New-Object System.Drawing.Size(75, 30)
+$btnStop.Location = New-Object System.Drawing.Point(20, 75)
+$btnStop.Size = New-Object System.Drawing.Size(160, 30)
 $btnStop.Text = "Stop"
 $btnStop.Enabled = $false
 $btnStop.BackColor = [System.Drawing.Color]::FromArgb(80, 80, 80)
@@ -268,7 +253,7 @@ $panel.Controls.Add($btnStop)
 # ========== SIMPLIFIED HOVER LOGIC ==========
 # Create a timer for delayed hiding
 $hideTimer = New-Object System.Windows.Forms.Timer
-$hideTimer.Interval = 500  # 500ms delay before hiding
+$hideTimer.Interval = 500
 $hideTimer.Enabled = $false
 
 # Function to show controls
@@ -361,14 +346,20 @@ $btnStop.Add_Click({
     $btnStart.Enabled = $true
     $txtTime.Enabled = $true
     
-    $titleLabel.Text = "Countdown Timer"
     Update-Display -progress 0
 })
 
 # Form resize event
 $form.Add_Resize({
-    # Adjust close button position when form resizes
+    # Adjust close button position when form resizes (stays top right)
     $closeButton.Left = $form.ClientSize.Width - $closeButton.Width - 10
+    
+    # Adjust button widths to fit panel width
+    $panelWidth = $panel.Width
+    $btnStart.Width = [Math]::Max(75, $panelWidth - 40)
+    $btnStop.Width = [Math]::Max(75, $panelWidth - 40)
+    $txtTime.Left = [Math]::Max(100, ($panelWidth - 80) / 2)
+    $label.Left = $txtTime.Left - 80
     
     if ($script:totalSeconds -gt 0 -and $script:isRunning) {
         # Use the same real-time calculation for consistency
